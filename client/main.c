@@ -62,7 +62,6 @@ static role_t attempt_login(MYSQL *conn, char *username, char *password, char *l
 	param[0].buffer = &role;
 	param[0].buffer_length = sizeof(role);
 
-//??
 	param[1].buffer_type = MYSQL_TYPE_VAR_STRING;
 	param[1].buffer = library;
 	param[1].buffer_length = sizeof(library);
