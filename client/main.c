@@ -13,7 +13,8 @@ typedef enum {
 	FAILED_LOGIN
 } role_t;
 
-static role_t attempt_login(MYSQL *conn, char *username, char *password, char *library) {
+//TODO refactor library to int
+static role_t attempt_login(MYSQL *conn, char *username, char *password, int *library) {
 	MYSQL_STMT *login_procedure;
 	
 	MYSQL_BIND param[4]; // Used both for input and output
@@ -40,10 +41,9 @@ static role_t attempt_login(MYSQL *conn, char *username, char *password, char *l
 	param[2].buffer = &role;
 	param[2].buffer_length = sizeof(role);
 
-
-	param[3].buffer_type = MYSQL_TYPE_VAR_STRING; // OUT
+	param[3].buffer_type = MYSQL_TYPE_LONG; // OUT
 	param[3].buffer = library;
-	param[3].buffer_length = strlen(library);
+	param[3].buffer_length = sizeof(library);
 
 	if (mysql_stmt_bind_param(login_procedure, param) != 0) { // Note _param
 		print_stmt_error(login_procedure, "Could not bind parameters for login");
@@ -62,6 +62,7 @@ static role_t attempt_login(MYSQL *conn, char *username, char *password, char *l
 	param[0].buffer = &role;
 	param[0].buffer_length = sizeof(role);
 
+	// If librarian store the current library
 	param[1].buffer_type = MYSQL_TYPE_VAR_STRING;
 	param[1].buffer = library;
 	param[1].buffer_length = sizeof(library);
@@ -89,7 +90,7 @@ static role_t attempt_login(MYSQL *conn, char *username, char *password, char *l
 int main(void){
 	char username[128];
 	char password[128];
-	char library[128];
+	int library;
 
 	conn = mysql_init (NULL);
 	if (conn == NULL) {
@@ -97,17 +98,28 @@ int main(void){
 		exit(EXIT_FAILURE);
 	}
 
-	if (mysql_real_connect(conn, "localhost", "login", "login", "biblioteca", "3306", NULL, CLIENT_MULTI_STATEMENTS | CLIENT_MULTI_RESULTS) == NULL) {
+	if (mysql_real_connect(conn, "localhost", "login", "login", "biblioteca", 3306, NULL, CLIENT_MULTI_STATEMENTS | CLIENT_MULTI_RESULTS) == NULL) {
 		fprintf (stderr, "mysql_real_connect() failed\n");
 		mysql_close (conn);
 		exit(1);
 	}
 
 	printf("Username: ");
-	scanf("%s", username);
+	getInput(128, username, false);
 	printf("Password: ");
-	scanf("%s", password);
+	getInput(128, password, false);
 
-	printf("%d in: %s\n", attempt_login(conn, username, password, library), library);
+	int role = attempt_login(conn, username, password, &library);
+
+	switch(role) {
+		case 1:
+			printf("Connecting as admin...WIP\n");
+			break;
+		case 2:
+			librarian(conn, 1);
+			break;
+		default:
+			printf("Invalid login\n");
+	}
 
 }
