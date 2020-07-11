@@ -90,7 +90,7 @@ static role_t attempt_login(MYSQL *conn, char *username, char *password, int *li
 int main(void){
 	char username[128];
 	char password[128];
-	int library;
+	int library = -1;
 
 	conn = mysql_init (NULL);
 	if (conn == NULL) {
@@ -107,7 +107,7 @@ int main(void){
 	printf("Username: ");
 	getInput(128, username, false);
 	printf("Password: ");
-	getInput(128, password, false);
+	getInput(128, password, true);
 
 	int role = attempt_login(conn, username, password, &library);
 
@@ -116,7 +116,13 @@ int main(void){
 			printf("Connecting as admin...WIP\n");
 			break;
 		case 2:
-			librarian(conn, 1);
+			//TODO remove hardcoded 1
+			/*if(library > 0) {*/
+				librarian(conn, 1);
+				/*
+			} else {
+				printf("No turn selected\n");
+			}*/
 			break;
 		default:
 			printf("Invalid login\n");
