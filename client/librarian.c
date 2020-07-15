@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <signal.h>
 
 #include "defines.h"
 
@@ -28,7 +29,6 @@ static void add_book(MYSQL *conn) {
 	getInput(45, author, false);
     printf("Editore: ");
 	getInput(45, edithor, false);
-    // TODO considerare situazioni di errore
 
     unsigned int day, month, year;
 
@@ -283,7 +283,7 @@ static void lend(MYSQL *conn) {
 	mysql_stmt_close(prepared_stmt);
 }
 
-//TODO FIXXXXX
+
 static void return_copy(MYSQL *conn) {
 	MYSQL_STMT *prepared_stmt;
 	MYSQL_BIND param[5];
@@ -294,7 +294,6 @@ static void return_copy(MYSQL *conn) {
     double pen;
     int late;
 
-    //IN var_codice INT, IN var_scaffale VARCHAR(45), IN var_ripiano VARCHAR(45), OUT var_penale DOUBLE, OUT var_ritardo INT
     printf("\033[2J\033[H");
     printf("Restituisci copia\n");
 
@@ -365,7 +364,7 @@ static void return_copy(MYSQL *conn) {
 	}
 
     printf("Libro restituito correttamente\n");
-    printf("PENALE: %f\n", pen);
+    printf("PENALE: %5.1f\n", pen);
     printf("RITARDO: %d\n", late);
 
     out:
@@ -384,7 +383,6 @@ static void show_books(MYSQL *conn) {
 	// Get the required information
 	printf("\nQuery: ");
 	getInput(20, query, false);
-    // TODO considerare situazioni di errore
 
 	// Prepare stored procedure call
 	if(!setup_prepared_stmt(&prepared_stmt, "call trova_libri(?)", conn)) {
@@ -424,7 +422,6 @@ static void show_copies(MYSQL *conn) {
 	// Get the required information
 	printf("\nQuery: ");
 	getInput(45, query, false);
-    // TODO considerare situazioni di errore
 
 	// Prepare stored procedure call
 	if(!setup_prepared_stmt(&prepared_stmt, "call copie_disponibili_biblioteca(?, ?)", conn)) {
@@ -468,7 +465,6 @@ static void show_copies_external(MYSQL *conn) {
 	// Get the required information
 	printf("\nQuery: ");
 	getInput(45, query, false);
-    // TODO considerare situazioni di errore
 
 	// Prepare stored procedure call
 	if(!setup_prepared_stmt(&prepared_stmt, "call copie_disponibili(?, ?)", conn)) {
@@ -574,12 +570,151 @@ static void user_contact(MYSQL *conn) {
 	mysql_stmt_close(prepared_stmt);
 }
 
-void librarian(MYSQL *conn, int library) {
-    char command[20];
-    int loop = 1;
+static void move(MYSQL *conn) {
+    MYSQL_STMT *prepared_stmt;
+	MYSQL_BIND param[4];
+
+	int id;
+	char scaf[10];
+	char rip[10];
 
     printf("\033[2J\033[H");
-    
+	printf("Muovi copia in uno scaffale e ripiano\n");
+
+	printf("Codice: ");
+	getInteger(&id);
+	printf("Scaffale: ");
+	getInput(10, scaf, false);
+	printf("Ripiano: ");
+	getInput(10, rip, false);
+
+	// Prepare stored procedure call
+	if(!setup_prepared_stmt(&prepared_stmt, "call sposta(?, ?, ?, ?)", conn)) {
+		finish_with_stmt_error(conn, prepared_stmt, "Impossibile inizializzare lo statement.\n", false);
+	}
+
+	// Prepare parameters
+	memset(param, 0, sizeof(param));
+
+	param[0].buffer_type = MYSQL_TYPE_LONG;
+	param[0].buffer = &id;
+	param[0].buffer_length = sizeof(id);
+
+	param[1].buffer_type = MYSQL_TYPE_VAR_STRING;
+	param[1].buffer = scaf;
+	param[1].buffer_length = strlen(scaf);
+
+	param[2].buffer_type = MYSQL_TYPE_VAR_STRING;
+	param[2].buffer = rip;
+	param[2].buffer_length = sizeof(rip);
+
+    param[3].buffer_type = MYSQL_TYPE_LONG;
+	param[3].buffer = &lib;
+	param[3].buffer_length = sizeof(lib);
+
+	if (mysql_stmt_bind_param(prepared_stmt, param) != 0) {
+		finish_with_stmt_error(conn, prepared_stmt, "Errore nel binding dei parametri.\n", true);
+	}
+
+	// Run procedure
+	if (mysql_stmt_execute(prepared_stmt) != 0) {
+		print_stmt_error (prepared_stmt, "Errore nello spostare copie.");
+	} else {
+		printf("Copia %d spostata correttamente in %s - %s\n", id, scaf, rip);
+	}
+
+	mysql_stmt_close(prepared_stmt);
+}
+
+static void request_transfer(MYSQL *conn) {
+    MYSQL_STMT *prepared_stmt;
+	MYSQL_BIND param[2];
+
+	int id;
+
+    printf("\033[2J\033[H");
+	printf("Richiedi trasferimento\n");
+
+	printf("Codice: ");
+	getInteger(&id);
+
+	// Prepare stored procedure call
+	if(!setup_prepared_stmt(&prepared_stmt, "call richiesta_trasferimento(?, ?)", conn)) {
+		finish_with_stmt_error(conn, prepared_stmt, "Impossibile inizializzare lo statement.\n", false);
+	}
+
+	// Prepare parameters
+	memset(param, 0, sizeof(param));
+
+	param[0].buffer_type = MYSQL_TYPE_LONG;
+	param[0].buffer = &id;
+	param[0].buffer_length = sizeof(id);
+
+    param[1].buffer_type = MYSQL_TYPE_LONG;
+	param[1].buffer = &lib;
+	param[1].buffer_length = sizeof(lib);
+
+	if (mysql_stmt_bind_param(prepared_stmt, param) != 0) {
+		finish_with_stmt_error(conn, prepared_stmt, "Errore nel binding dei parametri.\n", true);
+	}
+
+	// Run procedure
+	if (mysql_stmt_execute(prepared_stmt) != 0) {
+		print_stmt_error (prepared_stmt, "Errore nella richiesta trasferimento.");
+	} else {
+		printf("Trasferimento richiesto\n");
+	}
+
+	mysql_stmt_close(prepared_stmt);
+}
+
+static void return_transfer(MYSQL *conn) {
+    MYSQL_STMT *prepared_stmt;
+	MYSQL_BIND param[2];
+
+	int id;
+
+    printf("\033[2J\033[H");
+	printf("Richiedi trasferimento\n");
+
+	printf("Codice: ");
+	getInteger(&id);
+
+	// Prepare stored procedure call
+	if(!setup_prepared_stmt(&prepared_stmt, "call ritorna_trasferimento(?, ?)", conn)) {
+		finish_with_stmt_error(conn, prepared_stmt, "Impossibile inizializzare lo statement.\n", false);
+	}
+
+	// Prepare parameters
+	memset(param, 0, sizeof(param));
+
+	param[0].buffer_type = MYSQL_TYPE_LONG;
+	param[0].buffer = &id;
+	param[0].buffer_length = sizeof(id);
+
+    param[1].buffer_type = MYSQL_TYPE_LONG;
+	param[1].buffer = &lib;
+	param[1].buffer_length = sizeof(lib);
+
+	if (mysql_stmt_bind_param(prepared_stmt, param) != 0) {
+		finish_with_stmt_error(conn, prepared_stmt, "Errore nel binding dei parametri.\n", true);
+	}
+
+	// Run procedure
+	if (mysql_stmt_execute(prepared_stmt) != 0) {
+		print_stmt_error (prepared_stmt, "Errore nel ritorno del trasferimento.");
+	} else {
+		printf("Copia restituita\n");
+	}
+
+	mysql_stmt_close(prepared_stmt);
+}
+
+void librarian(MYSQL *conn, int library) {
+    char command[20];
+
+    printf("\033[2J\033[H");
+
     if(mysql_change_user(conn, "bibliotecario", "bibliotecario", "biblioteca")) {
 		fprintf(stderr, "mysql_change_user() failed\n");
 		exit(EXIT_FAILURE);
@@ -589,29 +724,30 @@ void librarian(MYSQL *conn, int library) {
     printf("Connesso alla biblioteca %d\n", library);
     printf("Inserisci un comando, digita help per aiuto\n\n");
 
-    while(loop) {
-        printf("bibliotecario$ ");
+    while(1) {
+		
+    	printf("bibliotecario$ ");
         getInput(20, command, false);
 
         if(!strcmp(command, "quit")) {
-            loop = 0;
-            printf("Uscita...");
+            printf("Uscita...\n");
             return;
         } else if(!strcmp(command, "help")) {
+			printf("*** Comandi bibliotecario ***\n");
             printf("lend - presta la copia\n");
             printf("return - restituisci copia\n");
             printf("addbook - aggiunge un libro\n");
             printf("addcopy- aggiunge copia di un libro\n");
             printf("adduser - aggiunge utente\n");
-            printf("addcontact - aggiunge un contatto ad un utenteWIIWIWIWIWP\n");
+            printf("addcontact - aggiunge un contatto ad un utente\n");
             printf("contact - mostra contatti di un utente\n");
             printf("avble - mostra copia disponibile nella biblioteca attuale\n");
             printf("eavble - mostra copie disponibili in altre biblioteche\n");
             printf("showlend - mostra copie prestate\n");
             printf("showbooks - mostra libri nel sistema a partire dal Titolo\n");
-            printf("sposta copia");
-            printf("r) Richiedi Prestito\n");
-            printf("t) Richiedi Trasferimento\n");
+            printf("request - richiedi trasferimento\n");
+            printf("rtransfer - ritorna trasferimento\n");
+            printf("move - sposta copie in ripiani e scaffali\n");
             printf("quit - per uscire dall'applicazione\n");
             printf("clear - per pulire il terminale\n");
         } else if(!strcmp(command, "addbook")) {
@@ -622,6 +758,8 @@ void librarian(MYSQL *conn, int library) {
             lend(conn);
         } else if(!strcmp(command, "showlend")) {
             show_lend(conn);
+        } else if(!strcmp(command, "move")) {
+            move(conn);
         } else if(!strcmp(command, "contact")) {
             user_contact(conn);
         } else if(!strcmp(command, "return")) {
@@ -632,6 +770,10 @@ void librarian(MYSQL *conn, int library) {
             show_copies(conn);
         } else if(!strcmp(command, "eavble")) {
             show_copies_external(conn);
+        } else if(!strcmp(command, "request")) {
+            request_transfer(conn);
+        } else if(!strcmp(command, "rtransfer")) {
+            return_transfer(conn);
         } else if(!strcmp(command, "clear")) {
             printf("\033[2J\033[H");
         } else if(!strcmp(command, "showbooks")) {

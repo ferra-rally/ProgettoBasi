@@ -113,7 +113,7 @@ int main(void){
 
 	switch(role) {
 		case 1:
-			printf("Connecting as admin...WIP\n");
+			admin(conn);
 			break;
 		case 2:
 			//TODO remove hardcoded 1
@@ -127,5 +127,4 @@ int main(void){
 		default:
 			printf("Invalid login\n");
 	}
-
 }
