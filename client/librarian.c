@@ -291,8 +291,8 @@ static void return_copy(MYSQL *conn) {
     int id;
 	char scaf[45];
     char rip[45];
-    double pen;
-    int late;
+    double pen = 0;
+    int late = 0;
 
     printf("\033[2J\033[H");
     printf("Restituisci copia\n");
@@ -710,7 +710,7 @@ static void return_transfer(MYSQL *conn) {
 	mysql_stmt_close(prepared_stmt);
 }
 
-void librarian(MYSQL *conn, int library) {
+void librarian(MYSQL *conn, int library, char *username) {
     char command[20];
 
     printf("\033[2J\033[H");
@@ -726,7 +726,7 @@ void librarian(MYSQL *conn, int library) {
 
     while(1) {
 		
-    	printf("bibliotecario$ ");
+    	printf("%s-bibliotecario$ ", username);
         getInput(20, command, false);
 
         if(!strcmp(command, "quit")) {

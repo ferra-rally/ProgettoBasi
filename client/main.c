@@ -109,16 +109,17 @@ int main(void){
 	printf("Password: ");
 	getInput(128, password, true);
 
+	//TODO send timestamp
 	int role = attempt_login(conn, username, password, &library);
 
 	switch(role) {
 		case 1:
-			admin(conn);
+			admin(conn, username);
 			break;
 		case 2:
 			//TODO remove hardcoded 1
 			/*if(library > 0) {*/
-				librarian(conn, 1);
+				librarian(conn, 1, username);
 				/*
 			} else {
 				printf("No turn selected\n");
