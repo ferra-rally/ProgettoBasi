@@ -231,6 +231,7 @@ void dump_result_set(MYSQL *conn, MYSQL_STMT *stmt, char *title)
 	MYSQL_BIND *rs_bind;  /* for output buffers */
 	MYSQL_RES *rs_metadata;
 	MYSQL_TIME *date;
+	MYSQL_TIME *time;
 	size_t attr_size;
 
 	/* Prefetch the whole result set. This in conjunction with
@@ -364,7 +365,11 @@ void dump_result_set(MYSQL *conn, MYSQL_STMT *stmt, char *title)
 					case MYSQL_TYPE_NEWDECIMAL:
 						printf(" %-*.02lf |", (int)fields[i].max_length, *(float*) rs_bind[i].buffer);
 						break;
-	 
+
+	 				case MYSQL_TYPE_TIME:
+					 	time = (MYSQL_TIME *)rs_bind[i].buffer;
+						printf("%.02d:%.02d\t\t     |", time->hour, time->minute);
+						break;
 					default:
 					    printf("ERROR: Unhandled type (%d)\n", rs_bind[i].buffer_type);
 					    abort();

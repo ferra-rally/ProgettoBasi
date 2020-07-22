@@ -710,6 +710,48 @@ static void return_transfer(MYSQL *conn) {
 	mysql_stmt_close(prepared_stmt);
 }
 
+static void show_time(MYSQL *conn) {
+	MYSQL_STMT *prepared_stmt;
+	MYSQL_BIND param[1];
+
+    int id;
+
+    printf("\n");
+    printf("Orari biblioteca\n");
+
+	// Get the required information
+    printf("\nCodice Biblioteca: ");
+	getInteger(&id);
+
+	// Prepare stored procedure call
+	if(!setup_prepared_stmt(&prepared_stmt, "call orari_biblioteca(?)", conn)) {
+		finish_with_stmt_error(conn, prepared_stmt, "Impossibile inizializzare lo statement.\n", false);
+	}
+
+	// Prepare parameters
+	memset(param, 0, sizeof(param));
+
+	param[0].buffer_type = MYSQL_TYPE_LONG;
+	param[0].buffer = &id;
+	param[0].buffer_length = sizeof(id);
+
+
+	if (mysql_stmt_bind_param(prepared_stmt, param) != 0) {
+		finish_with_stmt_error(conn, prepared_stmt, "Errore nel binding dei parametri.\n", true);
+	}
+
+	// Run procedure
+	if (mysql_stmt_execute(prepared_stmt) != 0) {
+		print_stmt_error (prepared_stmt, "Errore nella richiesta degli orari.");
+	}
+
+    char buff[50];
+    sprintf(buff, "Orari biblioteca %d", id);
+    dump_result_set(conn, prepared_stmt, buff);
+
+	mysql_stmt_close(prepared_stmt);
+}
+
 void librarian(MYSQL *conn, int library, char *username) {
     char command[20];
 
@@ -748,6 +790,7 @@ void librarian(MYSQL *conn, int library, char *username) {
             printf("request - richiedi trasferimento\n");
             printf("rtransfer - ritorna trasferimento\n");
             printf("move - sposta copie in ripiani e scaffali\n");
+			printf("showtime - mostra l'orario di una biblioteca\n");
             printf("quit - per uscire dall'applicazione\n");
             printf("clear - per pulire il terminale\n");
         } else if(!strcmp(command, "addbook")) {
@@ -778,6 +821,8 @@ void librarian(MYSQL *conn, int library, char *username) {
             printf("\033[2J\033[H");
         } else if(!strcmp(command, "showbooks")) {
             show_books(conn);
+        } else if(!strcmp(command, "showtime")) {
+            show_time(conn);
         } else {
             printf("comando %s non riconosciuto, digita help per aiuto\n", command);
         }
