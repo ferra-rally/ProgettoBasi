@@ -1,9 +1,13 @@
+#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
+#include <errno.h>
 
 #include "defines.h"
+
+char command[20];
 
 static void add_admin(MYSQL *conn) {
 	MYSQL_STMT *prepared_stmt;
@@ -18,10 +22,18 @@ static void add_admin(MYSQL *conn) {
 
 	// Get the required information
     printf("\nUsername: ");
-	getInput(45, username, false);
+	if(getInput(45, username, false) < 0) {
+		return;
+	}
+	
 	printf("Password: ");
-	getInput(45, password, true);
-	printf("Ripeti password: ");
+	if(getInput(45, password, true) < 0) {
+		return;
+	}
+
+	if(printf("Ripeti password: ") < 0) {
+		return;
+	}
 	getInput(45, passwordtmp, true);
 
     if(strcmp(password, passwordtmp)) {
@@ -70,24 +82,43 @@ static void add_library(MYSQL *conn) {
     char resp[45];
     char telephone[12];
 
-    printf("\033[2J\033[H");
     printf("Aggiungi biblioteca\n");
 
 	// Get the required information
     printf("\nCodice: ");
-	getInteger(&id);
+	if(getInteger(&id) < 0){
+		return;
+	}
+
 	printf("Nome: ");
-	getInput(45, name, false);
+	if(getInput(45, name, false) < 0){
+		return;
+	}
+
     printf("Citta: ");
-	getInput(45, city, false);
+	if(getInput(45, city, false) < 0){
+		return;
+	}
+
 	printf("Via: ");
-	getInput(45, street, false);
+	if(getInput(45, street, false) < 0){
+		return;
+	}
+
     printf("Numero: ");
-	getInput(45, number, false);
+	if(getInput(45, number, false) < 0){
+		return;
+	}
+
     printf("Responsabile: ");
-	getInput(45, resp, false);
+	if(getInput(45, resp, false) < 0){
+		return;
+	}
+	
     printf("Telefono: ");
-	getInput(12, telephone, false);
+	if(getInput(12, telephone, false) < 0){
+		return;
+	}
 
 	// Prepare stored procedure call
 	if(!setup_prepared_stmt(&prepared_stmt, "call aggiungi_biblioteca(?, ?, ?, ?, ?, ?, ?)", conn)) {
@@ -147,44 +178,64 @@ static void add_librarian(MYSQL *conn) {
     char name[45];
     char surname[45];
     char pob[45];	//Place of birth
-    MYSQL_TIME date;	//Date of birth
+    MYSQL_TIME *date;	//Date of birth
+	date = malloc(sizeof(MYSQL_TIME));
 	char title[45];
     char username[45];
 	char password[45];
 	char passwordtmp[45];
 
-    printf("\033[2J\033[H");
     printf("Aggiungi bibliotecario\n");
 
 	// Get the required information
 	printf("CF: ");
-	getInput(16, cf, false);
+	if(getInput(16, cf, false) < 0) {
+		return;
+	}
+
     printf("Nome: ");
-	getInput(45, name, false);
+	if(getInput(45, name, false) < 0) {
+		return;
+	}
+
 	printf("Cognome: ");
-	getInput(45, surname, false);
+	if(getInput(45, surname, false) < 0) {
+		return;
+	}
+
     printf("Luogo di nascita: ");
-	getInput(45, pob, false);
+	if(getInput(45, pob, false) < 0) {
+		return;
+	}
     
-	unsigned int day, month, year;
+	printf("Inserisci data di nascita(formato dd/mm/yyyy): ");
+	if(getDate(date) < 0){
+		return;
+	}
 
-    printf("Inserisci data di nascita(formato dd/mm/yyyy): ");
-    scanf("%d/%d/%d",&day,&month,&year);
-    getchar();
-
-    date.day = day;
-    date.month = month;
-    date.year = year;
+	printf("Titolo di studio: ");
+	if(getInput(45, title, false) < 0) {
+		return;
+	}
 
 	printf("Username: ");
-	getInput(45, username, false);
+	if(getInput(45, username, false) < 0) {
+		return;
+	}
+
 	printf("Password: ");
-	getInput(45, password, true);
+	if(getInput(45, password, true) < 0) {
+		return;
+	}
+
 	printf("Ripeti password: ");
-	getInput(45, passwordtmp, true);
+	if(getInput(45, passwordtmp, true) < 0) {
+		return;
+	}
 
     if(strcmp(password, passwordtmp)) {
-        finish_with_error(conn, "Le password non sono uguali");
+        printf("Le passowod non corrispondono\n");
+		return;
     }
 
 	// Prepare stored procedure call
@@ -217,8 +268,8 @@ IN var_data_nascita DATE, IN var_titolo_studio VARCHAR(45), IN var_username VARC
 	param[3].buffer_length = strlen(pob);
 
     param[4].buffer_type = MYSQL_TYPE_DATE;
-	param[4].buffer = &date;
-	param[4].buffer_length = sizeof(date);
+	param[4].buffer = date;
+	param[4].buffer_length = sizeof(*date);
 
     param[5].buffer_type = MYSQL_TYPE_VAR_STRING;
 	param[5].buffer = title;
@@ -265,18 +316,24 @@ static void add_time(MYSQL *conn) {
 
 	// Get the required information
     printf("\nCodice: ");
-	getInteger(&id);
-	printf("Giorno: ");
-	getInput(13, day, false);
+	if(getInteger(&id) < 0) {
+		return;
+	}
 
-//TODO FIX NEGATIVE TIME
+	printf("Giorno: ");
+	if(getInput(13, day, false) < 0) {
+		return;
+	}
+
     printf("Inserisci orario di apertura(formato xx:xx): ");
-    scanf("%u:%u",&start->hour, &start->minute);
-    start->second = 0;
+    if(getTime(start) < 0) {
+		return;
+	}
 
     printf("Inserisci orario di chiusura(formato xx:xx): ");
-    scanf("%u:%u",&end->hour, &end->minute);
-    end->second = 0;
+    if(getTime(end) < 0) {
+		return;
+	}
     getchar();
 
 	// Prepare stored procedure call
@@ -337,19 +394,29 @@ static void add_turn(MYSQL *conn) {
 
 	// Get the required information
     printf("\nCodice Turno: ");
-	getInteger(&id);
+	if(getInteger(&id) < 0) {
+		return;
+	}
+
     printf("Codice Biblioteca: ");
-	getInteger(&idLib);
+	if(getInteger(&idLib) < 0){
+		return;
+	}
+
 	printf("Giorno: ");
-	getInput(13, day, false);
+	if(getInput(13, day, false) < 0){
+		return;
+	}
 
     printf("Inserisci orario di inizio(formato xx:xx): ");
-    scanf("%u:%u",&start->hour, &start->minute);
-    start->second = 0;
+    if(getTime(start) < 0) {
+		return;
+	}
 
     printf("Inserisci orario di fine(formato xx:xx): ");
-    scanf("%u:%u",&end->hour, &end->minute);
-    end->second = 0;
+    if(getTime(end) < 0) {
+		return;
+	}
     getchar();
 
 	// Prepare stored procedure call
@@ -404,16 +471,23 @@ static void set_turn(MYSQL *conn) {
 	char cf[16];
     int idLib;
 
-    printf("\033[2J\033[H");
     printf("Assegna turno per il mese\n");
 
 	// Get the required information
     printf("\nCodice Turno: ");
-	getInteger(&idTurn);
+	if(getInteger(&idTurn) < 0){
+		return;
+	}
+
     printf("CF Bibliotecario: ");
-	getInput(16, cf, false);
+	if(getInput(16, cf, false) < 0){
+		return;
+	}
+
     printf("Codice Biblioteca: ");
-	getInteger(&idLib);
+	if(getInteger(&idLib) < 0){
+		return;
+	}
 
 	// Prepare stored procedure call
     //TODO Remove WIP
@@ -452,7 +526,6 @@ static void set_turn(MYSQL *conn) {
 	mysql_stmt_close(prepared_stmt);
 }
 
-//TODO ok??
 static void set_single_turn(MYSQL *conn) {
 	MYSQL_STMT *prepared_stmt;
 	MYSQL_BIND param[4];
@@ -460,28 +533,32 @@ static void set_single_turn(MYSQL *conn) {
 	int idTurn;
 	char cf[16];
     int idLib;
-    MYSQL_TIME date;
+    MYSQL_TIME *date;
+	date = malloc(sizeof(MYSQL_TIME));
 
-    printf("\033[2J\033[H");
     printf("Assegna turno per il mese\n");
 
 	// Get the required information
     printf("\nCodice Turno: ");
-	getInteger(&idTurn);
-    printf("CF Bibliotecario: ");
-	getInput(16, cf, false);
-    printf("Codice Biblioteca: ");
-	getInteger(&idLib);
+	if(getInteger(&idTurn) < 0){
+		return;
+	}
 
-    unsigned int day, month, year;
+    printf("CF Bibliotecario: ");
+	if(getInput(16, cf, false) < 0){
+		return;
+	}
+
+    printf("Codice Biblioteca: ");
+	if(getInteger(&idLib) < 0){
+		return;
+	}
+
 
     printf("Inserisci data turno(formato dd/mm/yyyy): ");
-    scanf("%d/%d/%d",&day,&month,&year);
-    getchar();
-
-    date.day = day;
-    date.month = month;
-    date.year = year;
+    if(getDate(date) < 0) {
+		return;
+	}
 
 	// Prepare stored procedure call
 	if(!setup_prepared_stmt(&prepared_stmt, "call assegna_turno_singolo(?, ?, ?, ?)", conn)) {
@@ -504,8 +581,8 @@ static void set_single_turn(MYSQL *conn) {
 	param[2].buffer_length = strlen(cf);
 
     param[3].buffer_type = MYSQL_TYPE_DATE;
-	param[3].buffer = &date;
-	param[3].buffer_length = sizeof(date);
+	param[3].buffer = date;
+	param[3].buffer_length = sizeof(*date);
 
 	if (mysql_stmt_bind_param(prepared_stmt, param) != 0) {
 		finish_with_stmt_error(conn, prepared_stmt, "Errore nel binding dei parametri.\n", true);
@@ -515,7 +592,7 @@ static void set_single_turn(MYSQL *conn) {
 	if (mysql_stmt_execute(prepared_stmt) != 0) {
 		print_stmt_error (prepared_stmt, "Errore nella assegnazione del turno.");
 	} else {
-		printf("Bibliotecario %s assegnato al turno %d-%d per il giorno %d.\n", cf, idTurn, idLib, day);
+		printf("Bibliotecario %s assegnato al turno %d-%d per il giorno %d.\n", cf, idTurn, idLib, date->day);
 	}
 
 	mysql_stmt_close(prepared_stmt);
@@ -527,12 +604,13 @@ static void show_request(MYSQL *conn) {
 
     int id;
 
-    printf("\033[2J\033[H");
     printf("Vedi richieste di trasferimento per una biblioteca\n");
 
 	// Get the required information
     printf("\nCodice: ");
-	getInteger(&id);
+	if(getInteger(&id) < 0){
+		return;
+	}
 
 	// Prepare stored procedure call
 	if(!setup_prepared_stmt(&prepared_stmt, "call vedi_richieste(?)", conn)) {
@@ -572,12 +650,16 @@ static void accept_transfer(MYSQL *conn) {
 
 	// Get the required information
     printf("\nCodice Copia: ");
-	getInteger(&idBook);
-    printf("\nCodice Biblioteca: ");
-	getInteger(&idLib);
+	if(getInteger(&idBook) < 0){
+		return;
+	}
+
+    printf("Codice Biblioteca: ");
+	if(getInteger(&idLib) < 0) {
+		return;
+	}
 
 	// Prepare stored procedure call
-    //TODO remove WIP
 	if(!setup_prepared_stmt(&prepared_stmt, "call accetta_richiesta(?, ?)", conn)) {
 		finish_with_stmt_error(conn, prepared_stmt, "Impossibile inizializzare lo statement.\n", false);
 	}
@@ -619,12 +701,16 @@ static void reject_transfer(MYSQL *conn) {
 
 	// Get the required information
     printf("\nCodice Copia: ");
-	getInteger(&idBook);
+	if(getInteger(&idBook) < 0) {
+		return;
+	}
+
     printf("\nCodice Biblioteca: ");
-	getInteger(&idLib);
+	if(getInteger(&idLib) < 0) {
+		return;
+	}
 
 	// Prepare stored procedure call
-    //TODO remove WIP
 	if(!setup_prepared_stmt(&prepared_stmt, "call rifiuta_richiesta(?, ?)", conn)) {
 		finish_with_stmt_error(conn, prepared_stmt, "Impossibile inizializzare lo statement.\n", false);
 	}
@@ -665,7 +751,9 @@ static void dismiss_copies(MYSQL *conn) {
 
 	// Get the required information
     printf("\nCodice Biblioteca: ");
-	getInteger(&id);
+	if(getInteger(&id) < 0) {
+		return;
+	}
 
 	// Prepare stored procedure call
 	if(!setup_prepared_stmt(&prepared_stmt, "call dismetti_copie(?)", conn)) {
@@ -701,34 +789,39 @@ static void sick_lib(MYSQL *conn) {
     char cf[16];
 	int idLib;
 	int idTurn;
-	MYSQL_TIME date;
+	MYSQL_TIME *date;
+	date = malloc(sizeof(MYSQL_TIME));
 	char reason[45];
 
-	//`richiesta_malattia` (IN var_bibliotecario VARCHAR(16), IN var_biblioteca INT, IN var_turno VARCHAR(10), IN var_data DATE, IN var_motivo VARCHAR(45))
-    printf("Richiesta malattina\n");
+    printf("\nRichiesta malattina\n");
 
 	// Get the required information
 	printf("\nCF: ");
-	getInput(16, cf, false);
-    printf("Codice Biblioteca: ");
-	getInteger(&idLib);
-	printf("Codice Turno: ");
-	getInteger(&idTurn);
+	if(getInput(16, cf, false) < 0) {
+		return;
+	}
 
-	unsigned int day, month, year;
+    printf("Codice Biblioteca: ");
+	if(getInteger(&idLib) < 0) {
+		return;
+	}
+	
+	printf("Codice Turno: ");
+	if(getInteger(&idTurn) < 0) {
+		return;
+	}
 
     printf("Inserisci data(formato dd/mm/yyyy): ");
-    scanf("%d/%d/%d",&day,&month,&year);
+    if(getDate(date) < 0) {
+		return;
+	}
     getchar();
 
-    date.day = day;
-    date.month = month;
-    date.year = year;
-
 	printf("Motivo: ");
-	getInput(45, reason, false);
+	if(getInput(45, reason, false) < 0) {
+		return;
+	}
 	
-
 	// Prepare stored procedure call
 	if(!setup_prepared_stmt(&prepared_stmt, "call richiesta_malattia(?, ?, ?, ?, ?)", conn)) {
 		finish_with_stmt_error(conn, prepared_stmt, "Impossibile inizializzare lo statement.\n", false);
@@ -750,8 +843,8 @@ static void sick_lib(MYSQL *conn) {
 	param[2].buffer_length = sizeof(idTurn);
 
 	param[3].buffer_type = MYSQL_TYPE_DATE;
-	param[3].buffer = &date;
-	param[3].buffer_length = sizeof(date);
+	param[3].buffer = date;
+	param[3].buffer_length = sizeof(*date);
 
 	param[4].buffer_type = MYSQL_TYPE_VAR_STRING;
 	param[4].buffer = reason;
@@ -782,7 +875,7 @@ static void show_time(MYSQL *conn) {
 
 	// Get the required information
     printf("\nCodice Biblioteca: ");
-	getInteger(&id);
+	if(getInteger(&id) < 0) return;
 
 	// Prepare stored procedure call
 	if(!setup_prepared_stmt(&prepared_stmt, "call orari_biblioteca(?)", conn)) {
@@ -817,35 +910,26 @@ static void avble_lib(MYSQL *conn) {
 	MYSQL_STMT *prepared_stmt;
 	MYSQL_BIND param[3];
 
-    MYSQL_TIME date;
+    MYSQL_TIME *date;
 	MYSQL_TIME *start;
 	MYSQL_TIME *end;
 
+	date = malloc(sizeof(MYSQL_TIME));
     start = malloc(sizeof(MYSQL_TIME));
     end = malloc(sizeof(MYSQL_TIME));
-
-	//`bibliotecari_disponibiliWIP` (IN var_data DATE, IN var_inizio TIME, IN var_fine TIME)
 
     printf("\n");
     printf("Ricerca bibliotecari disponibili\n");
 
-	unsigned int day, month, year;
-
 	// Get the required information
     printf("Inserisci data turno(formato dd/mm/yyyy): ");
-    scanf("%d/%d/%d",&day,&month,&year);
-
-    date.day = day;
-    date.month = month;
-    date.year = year;
+	if(getDate(date) < 0) return;
 
 	printf("Inserisci orario di apertura(formato xx:xx): ");
-    scanf("%u:%u",&start->hour, &start->minute);
-    start->second = 0;
+    if(getTime(start) < 0) return;
 
     printf("Inserisci orario di chiusura(formato xx:xx): ");
-    scanf("%u:%u",&end->hour, &end->minute);
-    end->second = 0;
+    if(getTime(end) < 0) return;
     getchar();
 
 	// Prepare stored procedure call
@@ -858,8 +942,8 @@ static void avble_lib(MYSQL *conn) {
 	memset(param, 0, sizeof(param));
 
 	param[0].buffer_type = MYSQL_TYPE_DATE;
-	param[0].buffer = &date;
-	param[0].buffer_length = sizeof(date);
+	param[0].buffer = date;
+	param[0].buffer_length = sizeof(*date);
 
 	param[1].buffer_type = MYSQL_TYPE_TIME;
 	param[1].buffer = start;
@@ -880,7 +964,7 @@ static void avble_lib(MYSQL *conn) {
 	}
 
     char buff[100];
-    sprintf(buff, "Bibliotecari disponibili il giorno %d/%d/%d %u:%u-%u:%u", day, month, year, start->hour, start->minute, end->hour, end->minute);
+    sprintf(buff, "Bibliotecari disponibili il giorno %d/%d/%d %u:%u-%u:%u", date->day, date->month, date->year, start->hour, start->minute, end->hour, end->minute);
     dump_result_set(conn, prepared_stmt, buff);
 
 	mysql_stmt_close(prepared_stmt);
@@ -897,7 +981,7 @@ static void check_coverage(MYSQL *conn) {
     printf("\nCopertura biblioteca\n");
 
 	printf("Codice biblioteca: ");
-	getInteger(&id);
+	if(getInteger(&id) < 0) return;
 
 
 	// Prepare stored procedure call
@@ -930,8 +1014,12 @@ static void check_coverage(MYSQL *conn) {
 	mysql_stmt_close(prepared_stmt);
 }
 
+void handler(int sig) {
+	printf("\nAnnullamento...\n");
+}
+
 void admin(MYSQL *conn, char *username) {
-    char command[20];
+
     printf("\033[2J\033[H");
     
     if(mysql_change_user(conn, "admin", "admin", "biblioteca")) {
@@ -939,11 +1027,20 @@ void admin(MYSQL *conn, char *username) {
 		exit(EXIT_FAILURE);
 	}
 
+	struct sigaction act, sa;
+ 
+	memset (&act, '\0', sizeof(act));
+ 
+	act.sa_handler = handler;
+	act.sa_flags = SA_INTERRUPT;
+
     printf("Connected as admin\n");
     while(1) {
 
         printf("%s-admin$ ", username);
         getInput(20, command, false);
+
+		sigaction(SIGINT, &act, NULL);
 
         if(!strcmp(command, "quit")) {
             printf("Uscita...\n");
@@ -967,6 +1064,7 @@ void admin(MYSQL *conn, char *username) {
             printf("showtime - mostra l'orario di una biblioteca\n");
             printf("quit - per uscire dall'applicazione\n");
             printf("clear - per pulire lo schermo\n");
+			printf("*********************\n");
         }  else if(!strcmp(command, "clear")) {
             printf("\033[2J\033[H");
         }  else if(!strcmp(command, "addadmin")) {
@@ -1004,5 +1102,7 @@ void admin(MYSQL *conn, char *username) {
         } else {
             printf("comando %s non riconosciuto, digita help per aiuto\n", command);
         }
+
+		sigaction(SIGINT, &sa, NULL);
     }
 }

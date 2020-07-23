@@ -122,7 +122,7 @@ int main(void){
 				librarian(conn, 1, username);
 				/*
 			} else {
-				printf("No turn selected\n");
+				printf("Nessun turno disponibile\n");
 			}*/
 			break;
 		default:

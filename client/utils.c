@@ -4,6 +4,7 @@
 #include <string.h>
 #include <signal.h>
 #include <termios.h>
+#include <errno.h>
 
 #include "defines.h"
 
@@ -72,15 +73,14 @@ bool setup_prepared_stmt(MYSQL_STMT **stmt, char *statement, MYSQL *conn)
 	return true;
 }
 
-
 //TODO refactor from this 
-char *getInput(unsigned int lung, char *stringa, bool hide) {
+int getInput(unsigned int lung, char *stringa, bool hide) {
 	char c;
 	unsigned int i;
 
 	// Dichiara le variabili necessarie ad un possibile mascheramento dell'input
-	sigaction_t sa, savealrm, saveint, savehup, savequit, saveterm;
-	sigaction_t savetstp, savettin, savettou;
+	struct sigaction sa, savealrm, saveint, savehup, savequit, saveterm;
+	struct sigaction savetstp, savettin, savettou;
 	struct termios term, oterm;
 
 	if(hide) {
@@ -99,7 +99,7 @@ char *getInput(unsigned int lung, char *stringa, bool hide) {
 		(void) sigaction(SIGTSTP, &sa, &savetstp);
 		(void) sigaction(SIGTTIN, &sa, &savettin);
 		(void) sigaction(SIGTTOU, &sa, &savettou);
-	
+
 		// Disattiva l'output su schermo
 		if (tcgetattr(fileno(stdin), &oterm) == 0) {
 			(void) memcpy(&term, &oterm, sizeof(struct termios));
@@ -113,7 +113,22 @@ char *getInput(unsigned int lung, char *stringa, bool hide) {
 
 	// Acquisisce da tastiera al pi� lung - 1 caratteri
 	for(i = 0; i < lung; i++) {
-		(void) fread(&c, sizeof(char), 1, stdin);
+		int size = fread(&c, sizeof(char), 1, stdin);
+		if(size == 0 && errno == EINTR) {
+			if(hide) {
+				(void) tcsetattr(fileno(stdin), TCSAFLUSH, &oterm);
+
+				(void) sigaction(SIGALRM, &savealrm, NULL);
+				(void) sigaction(SIGINT, &saveint, NULL);
+				(void) sigaction(SIGHUP, &savehup, NULL);
+				(void) sigaction(SIGQUIT, &savequit, NULL);
+				(void) sigaction(SIGTERM, &saveterm, NULL);
+				(void) sigaction(SIGTSTP, &savetstp, NULL);
+				(void) sigaction(SIGTTIN, &savettin, NULL);
+				(void) sigaction(SIGTTOU, &savettou, NULL);
+			}
+			return -1;
+		}
 		if(c == '\n') {
 			stringa[i] = '\0';
 			break;
@@ -163,7 +178,7 @@ char *getInput(unsigned int lung, char *stringa, bool hide) {
 			(void) raise(signo);
 	}
 	
-	return stringa;
+	return strlen(stringa);
 }
 
 // Per la gestione dei segnali
@@ -390,9 +405,37 @@ void dump_result_set(MYSQL *conn, MYSQL_STMT *stmt, char *title)
 }
 
 int getInteger(int *dest) {
-	int size = 0;
-	size = scanf("%d", dest);
+	int size = scanf("%d", dest);
+	if(size < 0 && errno == EINTR) {
+		return -1;
+	}
+
 	getchar();
 	return size;
 }
 
+int getDate(MYSQL_TIME *date) {
+	unsigned int day, month, year;
+
+    int size = scanf("%d/%d/%d",&day,&month,&year);
+	if(size < 0 && errno == EINTR) {
+		return -1;
+	}
+
+    getchar();
+
+    date->day = day;
+    date->month = month;
+    date->year = year;
+
+	return size;
+}
+
+int getTime(MYSQL_TIME *time) {
+	int size = scanf("%u:%u",&time->hour, &time->minute);
+	if(size < 0 && errno == EINTR) {
+		return -1;
+	}
+    time->second = 0;
+	return size;
+}
