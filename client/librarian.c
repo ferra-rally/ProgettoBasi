@@ -4,6 +4,9 @@
 #include <signal.h>
 
 #include "defines.h"
+#define ANSI_COLOR_RED     "\x1b[31m"
+#define ANSI_COLOR_GREEN   "\x1b[32m"
+#define ANSI_COLOR_RESET   "\x1b[0m"
 
 int lib = 0;
 
@@ -770,9 +773,9 @@ void librarian(MYSQL *conn, int library, char *username) {
             printf("Uscita...\n");
             return;
         } else if(!strcmp(command, "help")) {
-			printf("*** Comandi bibliotecario ***\n");
-            printf("lend - presta la copia\n");
-            printf("return - restituisci copia\n");
+			printf(ANSI_COLOR_RED "*** Comandi bibliotecario ***" ANSI_COLOR_RESET "\n");
+            printf(ANSI_COLOR_GREEN "lend" ANSI_COLOR_RESET " - presta la copia" "\n");
+            printf(ANSI_COLOR_GREEN "return" ANSI_COLOR_RESET " - restituisci copia\n");
             printf("addbook - aggiunge un libro\n");
             printf("addcopy- aggiunge copia di un libro\n");
             printf("adduser - aggiunge utente\n");
