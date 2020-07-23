@@ -776,22 +776,22 @@ void librarian(MYSQL *conn, int library, char *username) {
 			printf(ANSI_COLOR_RED "*** Comandi bibliotecario ***" ANSI_COLOR_RESET "\n");
             printf(ANSI_COLOR_GREEN "lend" ANSI_COLOR_RESET " - presta la copia" "\n");
             printf(ANSI_COLOR_GREEN "return" ANSI_COLOR_RESET " - restituisci copia\n");
-            printf("addbook - aggiunge un libro\n");
-            printf("addcopy- aggiunge copia di un libro\n");
-            printf("adduser - aggiunge utente\n");
-            printf("addcontact - aggiunge un contatto ad un utente\n");
-            printf("contact - mostra contatti di un utente\n");
-            printf("avble - mostra copia disponibile nella biblioteca attuale\n");
-            printf("eavble - mostra copie disponibili in altre biblioteche\n");
-            printf("showlend - mostra copie prestate\n");
-            printf("showbooks - mostra libri nel sistema a partire dal Titolo\n");
-            printf("request - richiedi trasferimento\n");
-            printf("rtransfer - ritorna trasferimento\n");
-            printf("move - sposta copie in ripiani e scaffali\n");
-			printf("showtime - mostra l'orario di una biblioteca\n");
-            printf("quit - per uscire dall'applicazione\n");
-            printf("clear - per pulire il terminale\n");
-			printf("*******************************\n");
+            printf(ANSI_COLOR_GREEN "addbook" ANSI_COLOR_RESET " - aggiunge un libro\n");
+            printf(ANSI_COLOR_GREEN "addcopy" ANSI_COLOR_RESET " - aggiunge copia di un libro\n");
+            printf(ANSI_COLOR_GREEN "adduser" ANSI_COLOR_RESET " - aggiunge utente\n");
+            printf(ANSI_COLOR_GREEN "addcontact" ANSI_COLOR_RESET " - aggiunge un contatto ad un utente\n");
+            printf(ANSI_COLOR_GREEN "contact" ANSI_COLOR_RESET " - mostra contatti di un utente\n");
+            printf(ANSI_COLOR_GREEN "avble" ANSI_COLOR_RESET " - mostra copia disponibile nella biblioteca attuale\n");
+            printf(ANSI_COLOR_GREEN "eavble" ANSI_COLOR_RESET " - mostra copie disponibili in altre biblioteche\n");
+            printf(ANSI_COLOR_GREEN "showlend" ANSI_COLOR_RESET " - mostra copie prestate\n");
+            printf(ANSI_COLOR_GREEN "showbooks" ANSI_COLOR_RESET " - mostra libri nel sistema a partire dal Titolo\n");
+            printf(ANSI_COLOR_GREEN "request" ANSI_COLOR_RESET " - richiedi trasferimento\n");
+            printf(ANSI_COLOR_GREEN "rtransfer" ANSI_COLOR_RESET " - ritorna trasferimento\n");
+            printf(ANSI_COLOR_GREEN "move" ANSI_COLOR_RESET " - sposta copie in ripiani e scaffali\n");
+			printf(ANSI_COLOR_GREEN "showtime" ANSI_COLOR_RESET " - mostra l'orario di una biblioteca\n");
+            printf(ANSI_COLOR_GREEN "quit" ANSI_COLOR_RESET " - per uscire dall'applicazione\n");
+            printf(ANSI_COLOR_GREEN "clear" ANSI_COLOR_RESET " - per pulire il terminale\n");
+			printf(ANSI_COLOR_RED "*******************************" ANSI_COLOR_RESET "\n");
         } else if(!strcmp(command, "addbook")) {
             add_book(conn);
         } else if(!strcmp(command, "addcopy")) {

@@ -7,6 +7,10 @@
 
 #include "defines.h"
 
+#define ANSI_COLOR_RED     "\x1b[31m"
+#define ANSI_COLOR_GREEN   "\x1b[32m"
+#define ANSI_COLOR_RESET   "\x1b[0m"
+
 char command[20];
 
 static void add_admin(MYSQL *conn) {
@@ -389,7 +393,6 @@ static void add_turn(MYSQL *conn) {
     start = malloc(sizeof(MYSQL_TIME));
     end = malloc(sizeof(MYSQL_TIME));
 
-    printf("\033[2J\033[H");
     printf("Aggiungi turno di una biblioteca\n");
 
 	// Get the required information
@@ -1045,25 +1048,25 @@ void admin(MYSQL *conn, char *username) {
             printf("Uscita...\n");
             return;
         } else if(!strcmp(command, "help")) {
-            printf("*** Admin commands ***\n");
-            printf("addadmin - per aggiungere un admin\n");
-            printf("addlibrary- per aggiungere una biblioteca\n");
-			printf("addlibrarian- per aggiungere un bibliotecario\n");
-            printf("addtime - per aggiungere un orario di una biblioteca\n");
-            printf("addturn - per aggiungere un turno\n");
-            printf("setturn - per assegnare un turno per un mese\n");
-            printf("setsturn - per aggiungere un turno singolo\n");
-            printf("accepttransfer - per accettare un trasferimento\n");
-            printf("rejecttransfer - per rifiutare una richiesta di transferimento\n");
-            printf("showrequest - per vedere le richieste di trasferimento\n");
-            printf("avblelib - per vedere bibliotecari disponibili\n");
-            printf("dcopies - per dismettere le copie\n");
-            printf("sick - per mettere in malattia un bibliotecario\n");
-            printf("checkcoverage - per verificare la copertura per una biblioteca\n");
-            printf("showtime - mostra l'orario di una biblioteca\n");
-            printf("quit - per uscire dall'applicazione\n");
-            printf("clear - per pulire lo schermo\n");
-			printf("*********************\n");
+            printf(ANSI_COLOR_RED "*** Admin commands ***" ANSI_COLOR_RESET "\n");
+            printf(ANSI_COLOR_GREEN "addadmin" ANSI_COLOR_RESET " - per aggiungere un admin\n");
+            printf(ANSI_COLOR_GREEN "addlibrary" ANSI_COLOR_RESET "- per aggiungere una biblioteca\n");
+			printf(ANSI_COLOR_GREEN "addlibrarian" ANSI_COLOR_RESET "- per aggiungere un bibliotecario\n");
+            printf(ANSI_COLOR_GREEN "addtime" ANSI_COLOR_RESET " - per aggiungere un orario di una biblioteca\n");
+            printf(ANSI_COLOR_GREEN "addturn" ANSI_COLOR_RESET " - per aggiungere un turno\n");
+            printf(ANSI_COLOR_GREEN "setturn" ANSI_COLOR_RESET " - per assegnare un turno per un mese\n");
+            printf(ANSI_COLOR_GREEN "setsturn" ANSI_COLOR_RESET " - per aggiungere un turno singolo\n");
+            printf(ANSI_COLOR_GREEN "accepttransfer" ANSI_COLOR_RESET " - per accettare un trasferimento\n");
+            printf(ANSI_COLOR_GREEN "rejecttransfer" ANSI_COLOR_RESET " - per rifiutare una richiesta di transferimento\n");
+            printf(ANSI_COLOR_GREEN "showrequest" ANSI_COLOR_RESET " - per vedere le richieste di trasferimento\n");
+            printf(ANSI_COLOR_GREEN "avblelib" ANSI_COLOR_RESET " - per vedere bibliotecari disponibili\n");
+            printf(ANSI_COLOR_GREEN "dcopies" ANSI_COLOR_RESET " - per dismettere le copie\n");
+            printf(ANSI_COLOR_GREEN "sick" ANSI_COLOR_RESET " - per mettere in malattia un bibliotecario\n");
+            printf(ANSI_COLOR_GREEN "checkcoverage" ANSI_COLOR_RESET " - per verificare la copertura per una biblioteca\n");
+            printf(ANSI_COLOR_GREEN "showtime" ANSI_COLOR_RESET " - mostra l'orario di una biblioteca\n");
+            printf(ANSI_COLOR_GREEN "quit" ANSI_COLOR_RESET " - per uscire dall'applicazione\n");
+            printf(ANSI_COLOR_GREEN "clear" ANSI_COLOR_RESET " - per pulire lo schermo\n");
+			printf(ANSI_COLOR_RED "*********************" ANSI_COLOR_RESET "\n");
         }  else if(!strcmp(command, "clear")) {
             printf("\033[2J\033[H");
         }  else if(!strcmp(command, "addadmin")) {

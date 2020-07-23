@@ -117,13 +117,13 @@ int main(void){
 			admin(conn, username);
 			break;
 		case 2:
-			//TODO remove hardcoded 1
-			/*if(library > 0) {*/
-				librarian(conn, 1, username);
-				/*
+			
+			if(library > 0) {
+				librarian(conn, library, username);
+				
 			} else {
 				printf("Nessun turno disponibile\n");
-			}*/
+			}
 			break;
 		default:
 			printf("Invalid login\n");
