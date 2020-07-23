@@ -815,7 +815,6 @@ static void sick_lib(MYSQL *conn) {
     if(getDate(date) < 0) {
 		return;
 	}
-    getchar();
 
 	printf("Motivo: ");
 	if(getInput(45, reason, false) < 0) {

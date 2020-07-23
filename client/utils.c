@@ -383,7 +383,7 @@ void dump_result_set(MYSQL *conn, MYSQL_STMT *stmt, char *title)
 
 	 				case MYSQL_TYPE_TIME:
 					 	time = (MYSQL_TIME *)rs_bind[i].buffer;
-						printf("%.02d:%.02d\t\t     |", time->hour, time->minute);
+						printf("%.02d:%.02d\t\t|", time->hour, time->minute);
 						break;
 					default:
 					    printf("ERROR: Unhandled type (%d)\n", rs_bind[i].buffer_type);

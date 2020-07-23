@@ -15,30 +15,24 @@ static void add_book(MYSQL *conn) {
 	char title[45];
 	char author[45];
     char edithor[45];
-    MYSQL_TIME  date;
+    MYSQL_TIME  *date;
+	date = malloc(sizeof(MYSQL_TIME));
 
-    printf("\033[2J\033[H");
-    printf("Aggiungi libro\n");
+    printf("\nAggiungi libro\n");
 
 	// Get the required information
 	printf("\nISBN: ");
-	getInput(20, isbn, false);
+	if(getInput(20, isbn, false) < 0) return;
 	printf("Titolo: ");
-	getInput(45, title, false);
+	if(getInput(45, title, false) < 0) return;
 	printf("Autore: ");
-	getInput(45, author, false);
+	if(getInput(45, author, false) < 0) return;
     printf("Editore: ");
-	getInput(45, edithor, false);
+	if(getInput(45, edithor, false) < 0) return;
 
-    unsigned int day, month, year;
 
     printf("Inserisci data di pubblicazione(formato dd/mm/yyyy): ");
-    scanf("%d/%d/%d",&day,&month,&year);
-    getchar();
-
-    date.day = day;
-    date.month = month;
-    date.year = year;
+    if(getDate(date) < 0) return;
  
 	// Prepare stored procedure call
 	if(!setup_prepared_stmt(&prepared_stmt, "call aggiungi_libro(?, ?, ?, ?, ?)", conn)) {
@@ -65,8 +59,8 @@ static void add_book(MYSQL *conn) {
 	param[3].buffer_length = strlen(edithor);
 
     param[4].buffer_type = MYSQL_TYPE_DATE;
-	param[4].buffer = &date;
-	param[4].buffer_length = sizeof(date);
+	param[4].buffer = date;
+	param[4].buffer_length = sizeof(*date);
 
 	if (mysql_stmt_bind_param(prepared_stmt, param) != 0) {
 		finish_with_stmt_error(conn, prepared_stmt, "Errore nel binding dei parametri.\n", true);
@@ -91,18 +85,17 @@ static void add_copy(MYSQL *conn) {
     char scaf[10];
     char rip[10];
 
-    printf("\033[2J\033[H");
-    printf("Aggiungi copia\n");
+    printf("\nAggiungi copia\n");
 
 	// Get the required information
     printf("\nCodice: ");
-	getInteger(&id);
+	if(getInteger(&id) < 0) return;
 	printf("ISBN: ");
-	getInput(20, isbn, false);
+	if(getInput(20, isbn, false) < 0) return;
 	printf("Scaffale: ");
-	getInput(10, scaf, false);
+	if(getInput(10, scaf, false) < 0) return;
 	printf("Ripiano: ");
-	getInput(10, rip, false);
+	if(getInput(10, rip, false) < 0) return;
  
 	// Prepare stored procedure call
 	if(!setup_prepared_stmt(&prepared_stmt, "call aggiungi_copia(?, ?, ?, ?, ?)", conn)) {
@@ -156,29 +149,28 @@ static void add_user(MYSQL *conn) {
     int type;
     char contact[45];
 
-    printf("\033[2J\033[H");
-    printf("Aggiungi utente\n");
+    printf("\nAggiungi utente\n");
 
 	// Get the required information
     printf("\nCF: ");
-	getInput(16, cf, false);
+	if(getInput(16, cf, false) < 0) return;
 	printf("Nome: ");
-	getInput(45, name, false);
+	if(getInput(45, name, false) < 0) return;
 	printf("Cognome: ");
-	getInput(45, surname, false);
+	if(getInput(45, surname, false) < 0) return;
 
 	printf("*** Contatto preferito ***\n");
     printf("1 - per e-mail\n");
     printf("2 - per telefono\n");
     printf("3 - per cellulare\n");
 	printf("Selezionare tipo: ");
-    getInteger(&type);
+    if(getInteger(&type) < 0) return;
 
     if(type > 3 || type < 1) {
         finish_with_error(conn, "Tipo invalido, uscita...");
     }
     printf("Inserire contatto: ");
-    getInput(45, contact, false);
+    if(getInput(45, contact, false) < 0) return;
  
 	// Prepare stored procedure call
 	if(!setup_prepared_stmt(&prepared_stmt, "call aggiungi_utente(?, ?, ?, ?, ?)", conn)) {
@@ -230,16 +222,15 @@ static void lend(MYSQL *conn) {
 	char cf[16];
     int length;
 
-    printf("\033[2J\033[H");
-    printf("Presta Copia\n");
+    printf("\nPresta Copia\n");
 
 	// Get the required information
     printf("\nCodice: ");
-	getInteger(&id);
+	if(getInteger(&id) < 0) return;
 	printf("CF: ");
-	getInput(16, cf, false);
+	if(getInput(16, cf, false) < 0) return;
     printf("Durata prestito [1/2/3]: ");
-    getInteger(&length);
+    if(getInteger(&length) < 0) return;
 
     if(length > 3 || length < 1) {
         finish_with_error(conn, "Tipo invalido, uscita...");
@@ -294,16 +285,15 @@ static void return_copy(MYSQL *conn) {
     double pen = 0;
     int late = 0;
 
-    printf("\033[2J\033[H");
     printf("Restituisci copia\n");
 
 	// Get the required information
     printf("\nCodice: ");
-	getInteger(&id);
+	if(getInteger(&id) < 0) return;
 	printf("Scaffale: ");
-	getInput(45, scaf, false);
+	if(getInput(45, scaf, false) < 0) return;
     printf("Ripiano: ");
-	getInput(45, rip, false);
+	if(getInput(45, rip, false) < 0) return;
 
 	// Prepare stored procedure call
 	if(!setup_prepared_stmt(&prepared_stmt, "call restituisci_copia(?, ?, ?, ?, ?)", conn)) {
@@ -377,12 +367,11 @@ static void show_books(MYSQL *conn) {
 
 	char query[45];
 
-    printf("\033[2J\033[H");
-    printf("Inserisci ricerca, premi invio per mostrare tutto\n");
+    printf("\nInserisci ricerca di libri, premi invio per mostrare tutto\n");
 
 	// Get the required information
 	printf("\nQuery: ");
-	getInput(20, query, false);
+	if(getInput(20, query, false) < 0) return;
 
 	// Prepare stored procedure call
 	if(!setup_prepared_stmt(&prepared_stmt, "call trova_libri(?)", conn)) {
@@ -416,12 +405,11 @@ static void show_copies(MYSQL *conn) {
 
 	char query[45];
 
-    printf("\033[2J\033[H");
-    printf("Inserisci ricerca, premi invio per mostrare tutto\n");
+    printf("\nInserisci ricerca di copie, premi invio per mostrare tutto\n");
 
 	// Get the required information
 	printf("\nQuery: ");
-	getInput(45, query, false);
+	if(getInput(45, query, false) < 0) return;
 
 	// Prepare stored procedure call
 	if(!setup_prepared_stmt(&prepared_stmt, "call copie_disponibili_biblioteca(?, ?)", conn)) {
@@ -459,12 +447,11 @@ static void show_copies_external(MYSQL *conn) {
 
 	char query[45];
 
-    printf("\033[2J\033[H");
-    printf("Inserisci ricerca, premi invio per mostrare tutto\n");
+    printf("\nInserisci ricerca, premi invio per mostrare tutto\n");
 
 	// Get the required information
 	printf("\nQuery: ");
-	getInput(45, query, false);
+	if(getInput(45, query, false) < 0) return;
 
 	// Prepare stored procedure call
 	if(!setup_prepared_stmt(&prepared_stmt, "call copie_disponibili(?, ?)", conn)) {
@@ -500,8 +487,6 @@ static void show_lend(MYSQL *conn) {
     MYSQL_STMT *prepared_stmt;
 	MYSQL_BIND param[1];
 
-    printf("\033[2J\033[H");
-
 	// Prepare stored procedure call
 	if(!setup_prepared_stmt(&prepared_stmt, "call copie_prestate(?)", conn)) {
 		finish_with_stmt_error(conn, prepared_stmt, "Impossibile inizializzare lo statement.\n", false);
@@ -535,9 +520,9 @@ static void user_contact(MYSQL *conn) {
 
     char cf[16];
 
-    printf("\033[2J\033[H");
+    printf("\nRicerca contatti utente\n");
     printf("Inserisci codice fiscale: ");
-    getInput(16, cf, false);
+    if(getInput(16, cf, false) < 0) return;
 
 	// Prepare stored procedure call
 	if(!setup_prepared_stmt(&prepared_stmt, "call contatti_utente(?)", conn)) {
@@ -578,15 +563,14 @@ static void move(MYSQL *conn) {
 	char scaf[10];
 	char rip[10];
 
-    printf("\033[2J\033[H");
-	printf("Muovi copia in uno scaffale e ripiano\n");
+	printf("\nMuovi copia in uno scaffale e ripiano\n");
 
 	printf("Codice: ");
-	getInteger(&id);
+	if(getInteger(&id) < 0) return;
 	printf("Scaffale: ");
-	getInput(10, scaf, false);
+	if(getInput(10, scaf, false) < 0) return;
 	printf("Ripiano: ");
-	getInput(10, rip, false);
+	if(getInput(10, rip, false) < 0) return;
 
 	// Prepare stored procedure call
 	if(!setup_prepared_stmt(&prepared_stmt, "call sposta(?, ?, ?, ?)", conn)) {
@@ -632,11 +616,10 @@ static void request_transfer(MYSQL *conn) {
 
 	int id;
 
-    printf("\033[2J\033[H");
-	printf("Richiedi trasferimento\n");
+	printf("\nRichiedi trasferimento\n");
 
 	printf("Codice: ");
-	getInteger(&id);
+	if(getInteger(&id) < 0) return;
 
 	// Prepare stored procedure call
 	if(!setup_prepared_stmt(&prepared_stmt, "call richiesta_trasferimento(?, ?)", conn)) {
@@ -674,11 +657,10 @@ static void return_transfer(MYSQL *conn) {
 
 	int id;
 
-    printf("\033[2J\033[H");
-	printf("Richiedi trasferimento\n");
+	printf("\nRichiedi trasferimento\n");
 
 	printf("Codice: ");
-	getInteger(&id);
+	if(getInteger(&id) < 0) return;
 
 	// Prepare stored procedure call
 	if(!setup_prepared_stmt(&prepared_stmt, "call ritorna_trasferimento(?, ?)", conn)) {
@@ -721,7 +703,7 @@ static void show_time(MYSQL *conn) {
 
 	// Get the required information
     printf("\nCodice Biblioteca: ");
-	getInteger(&id);
+	if(getInteger(&id) < 0) return;
 
 	// Prepare stored procedure call
 	if(!setup_prepared_stmt(&prepared_stmt, "call orari_biblioteca(?)", conn)) {
@@ -752,6 +734,10 @@ static void show_time(MYSQL *conn) {
 	mysql_stmt_close(prepared_stmt);
 }
 
+void lib_handler(int sig) {
+	printf("\nAnnullamento...\n");
+}
+
 void librarian(MYSQL *conn, int library, char *username) {
     char command[20];
 
@@ -766,10 +752,19 @@ void librarian(MYSQL *conn, int library, char *username) {
     printf("Connesso alla biblioteca %d\n", library);
     printf("Inserisci un comando, digita help per aiuto\n\n");
 
+	struct sigaction act, sa;
+ 
+	memset (&act, '\0', sizeof(act));
+ 
+	act.sa_handler = lib_handler;
+	act.sa_flags = SA_INTERRUPT;
+
     while(1) {
 		
     	printf("%s-bibliotecario$ ", username);
         getInput(20, command, false);
+
+		sigaction(SIGINT, &act, NULL);
 
         if(!strcmp(command, "quit")) {
             printf("Uscita...\n");
@@ -793,6 +788,7 @@ void librarian(MYSQL *conn, int library, char *username) {
 			printf("showtime - mostra l'orario di una biblioteca\n");
             printf("quit - per uscire dall'applicazione\n");
             printf("clear - per pulire il terminale\n");
+			printf("*******************************\n");
         } else if(!strcmp(command, "addbook")) {
             add_book(conn);
         } else if(!strcmp(command, "addcopy")) {
@@ -826,5 +822,7 @@ void librarian(MYSQL *conn, int library, char *username) {
         } else {
             printf("comando %s non riconosciuto, digita help per aiuto\n", command);
         }
+
+		sigaction(SIGINT, &sa, NULL);
     }
 }
