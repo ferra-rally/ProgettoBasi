@@ -298,6 +298,8 @@ IN var_data_nascita DATE, IN var_titolo_studio VARCHAR(45), IN var_username VARC
 		printf("Bibliotecario %s aggiunto correttamente\n", username);
 	}
 
+	free(date);
+
 	mysql_stmt_close(prepared_stmt);
 }
 
@@ -315,8 +317,7 @@ static void add_time(MYSQL *conn) {
     start = malloc(sizeof(MYSQL_TIME));
     end = malloc(sizeof(MYSQL_TIME));
 
-    printf("\033[2J\033[H");
-    printf("Aggiungi orario di una biblioteca\n");
+    printf("\nAggiungi orario di una biblioteca\n");
 
 	// Get the required information
     printf("\nCodice: ");
@@ -374,6 +375,9 @@ static void add_time(MYSQL *conn) {
 	} else {
 		printf("Orario per la biblioteca %d aggiunto correttamente\n", id);
 	}
+
+	free(start);
+	free(end);
 
 	mysql_stmt_close(prepared_stmt);
 }
@@ -460,6 +464,9 @@ static void add_turn(MYSQL *conn) {
 	} else {
 		printf("Turno %d per la biblioteca %d aggiunto correttamente\n", id, idLib);
 	}
+
+	free(start);
+	free(end);
 
 	mysql_stmt_close(prepared_stmt);
 }
@@ -597,6 +604,8 @@ static void set_single_turn(MYSQL *conn) {
 	} else {
 		printf("Bibliotecario %s assegnato al turno %d-%d per il giorno %d.\n", cf, idTurn, idLib, date->day);
 	}
+
+	free(date);
 
 	mysql_stmt_close(prepared_stmt);
 }
@@ -863,6 +872,8 @@ static void sick_lib(MYSQL *conn) {
         printf("Bibliotecario messo in malattia.\n");
     }
 
+    free(date);
+
 	mysql_stmt_close(prepared_stmt);
 }
 
@@ -968,6 +979,10 @@ static void avble_lib(MYSQL *conn) {
     char buff[100];
     sprintf(buff, "Bibliotecari disponibili il giorno %d/%d/%d %u:%u-%u:%u", date->day, date->month, date->year, start->hour, start->minute, end->hour, end->minute);
     dump_result_set(conn, prepared_stmt, buff);
+
+    free(start);
+	free(end);
+	free(date);
 
 	mysql_stmt_close(prepared_stmt);
 }

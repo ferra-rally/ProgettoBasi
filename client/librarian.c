@@ -76,6 +76,8 @@ static void add_book(MYSQL *conn) {
 		printf("Libro aggiunto correttamente\n");
 	}
 
+	free(date);
+
 	mysql_stmt_close(prepared_stmt);
 }
 
