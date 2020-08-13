@@ -85,7 +85,7 @@ static void add_copy(MYSQL *conn) {
 	MYSQL_STMT *prepared_stmt;
 	MYSQL_BIND param[5];
 
-	int id;
+	char id[20];
 	char isbn[20];
     char scaf[10];
     char rip[10];
@@ -94,7 +94,7 @@ static void add_copy(MYSQL *conn) {
 
 	// Get the required information
     printf("\nCodice: ");
-	if(getInteger(&id) < 0) return;
+	if(getInput(20, id, false) < 0) return;
 	printf("ISBN: ");
 	if(getInput(20, isbn, false) < 0) return;
 	printf("Scaffale: ");
@@ -110,9 +110,9 @@ static void add_copy(MYSQL *conn) {
 	// Prepare parameters
 	memset(param, 0, sizeof(param));
 
-	param[0].buffer_type = MYSQL_TYPE_LONG;
-	param[0].buffer = &id;
-	param[0].buffer_length = sizeof(id);
+	param[0].buffer_type = MYSQL_TYPE_VAR_STRING;
+	param[0].buffer = id;
+	param[0].buffer_length = strlen(id);
 
 	param[1].buffer_type = MYSQL_TYPE_VAR_STRING;
 	param[1].buffer = isbn;
@@ -223,7 +223,7 @@ static void lend(MYSQL *conn) {
 	MYSQL_STMT *prepared_stmt;
 	MYSQL_BIND param[4];
 	
-    int id;
+    char id[20];
 	char cf[16];
     int length;
 
@@ -231,7 +231,7 @@ static void lend(MYSQL *conn) {
 
 	// Get the required information
     printf("\nCodice: ");
-	if(getInteger(&id) < 0) return;
+	if(getInput(16, id, false) < 0) return;
 	printf("CF: ");
 	if(getInput(16, cf, false) < 0) return;
     printf("Durata prestito [1/2/3]: ");
@@ -249,9 +249,9 @@ static void lend(MYSQL *conn) {
 	// Prepare parameters
 	memset(param, 0, sizeof(param));
 
-	param[0].buffer_type = MYSQL_TYPE_LONG;
-	param[0].buffer = &id;
-	param[0].buffer_length = sizeof(id);
+	param[0].buffer_type = MYSQL_TYPE_VAR_STRING;
+	param[0].buffer = id;
+	param[0].buffer_length = strlen(id);
 
 	param[1].buffer_type = MYSQL_TYPE_VAR_STRING;
 	param[1].buffer = cf;
@@ -284,7 +284,7 @@ static void return_copy(MYSQL *conn) {
 	MYSQL_STMT *prepared_stmt;
 	MYSQL_BIND param[5];
 	
-    int id;
+    char id[20];
 	char scaf[45];
     char rip[45];
     double pen = 0;
@@ -294,7 +294,7 @@ static void return_copy(MYSQL *conn) {
 
 	// Get the required information
     printf("\nCodice: ");
-	if(getInteger(&id) < 0) return;
+	if(getInput(20, id, false) < 0) return;
 	printf("Scaffale: ");
 	if(getInput(45, scaf, false) < 0) return;
     printf("Ripiano: ");
@@ -308,9 +308,9 @@ static void return_copy(MYSQL *conn) {
 	// Prepare parameters
 	memset(param, 0, sizeof(param));
 
-	param[0].buffer_type = MYSQL_TYPE_LONG; //IN
-	param[0].buffer = &id;
-	param[0].buffer_length = sizeof(id);
+	param[0].buffer_type = MYSQL_TYPE_VAR_STRING; //IN
+	param[0].buffer = id;
+	param[0].buffer_length = strlen(id);
 
 	param[1].buffer_type = MYSQL_TYPE_VAR_STRING;   //IN
 	param[1].buffer = scaf;
@@ -564,14 +564,14 @@ static void move(MYSQL *conn) {
     MYSQL_STMT *prepared_stmt;
 	MYSQL_BIND param[4];
 
-	int id;
+	char id[20];
 	char scaf[10];
 	char rip[10];
 
 	printf("\nMuovi copia in uno scaffale e ripiano\n");
 
 	printf("Codice: ");
-	if(getInteger(&id) < 0) return;
+	if(getInput(20, id, false) < 0) return;
 	printf("Scaffale: ");
 	if(getInput(10, scaf, false) < 0) return;
 	printf("Ripiano: ");
@@ -585,9 +585,9 @@ static void move(MYSQL *conn) {
 	// Prepare parameters
 	memset(param, 0, sizeof(param));
 
-	param[0].buffer_type = MYSQL_TYPE_LONG;
-	param[0].buffer = &id;
-	param[0].buffer_length = sizeof(id);
+	param[0].buffer_type = MYSQL_TYPE_VAR_STRING;
+	param[0].buffer = id;
+	param[0].buffer_length = strlen(id);
 
 	param[1].buffer_type = MYSQL_TYPE_VAR_STRING;
 	param[1].buffer = scaf;
@@ -609,7 +609,7 @@ static void move(MYSQL *conn) {
 	if (mysql_stmt_execute(prepared_stmt) != 0) {
 		print_stmt_error (prepared_stmt, "Errore nello spostare copie.");
 	} else {
-		printf("Copia %d spostata correttamente in %s - %s\n", id, scaf, rip);
+		printf("Copia %s spostata correttamente in %s - %s\n", id, scaf, rip);
 	}
 
 	mysql_stmt_close(prepared_stmt);
@@ -619,12 +619,12 @@ static void request_transfer(MYSQL *conn) {
     MYSQL_STMT *prepared_stmt;
 	MYSQL_BIND param[2];
 
-	int id;
+	char id[20];
 
 	printf("\nRichiedi trasferimento\n");
 
 	printf("Codice: ");
-	if(getInteger(&id) < 0) return;
+	if(getInput(20, id, false) < 0) return;
 
 	// Prepare stored procedure call
 	if(!setup_prepared_stmt(&prepared_stmt, "call richiesta_trasferimento(?, ?)", conn)) {
@@ -634,9 +634,9 @@ static void request_transfer(MYSQL *conn) {
 	// Prepare parameters
 	memset(param, 0, sizeof(param));
 
-	param[0].buffer_type = MYSQL_TYPE_LONG;
-	param[0].buffer = &id;
-	param[0].buffer_length = sizeof(id);
+	param[0].buffer_type = MYSQL_TYPE_VAR_STRING;
+	param[0].buffer = id;
+	param[0].buffer_length = strlen(id);
 
     param[1].buffer_type = MYSQL_TYPE_LONG;
 	param[1].buffer = &lib;
@@ -660,12 +660,12 @@ static void return_transfer(MYSQL *conn) {
     MYSQL_STMT *prepared_stmt;
 	MYSQL_BIND param[2];
 
-	int id;
+	char id[20];
 
 	printf("\nRichiedi trasferimento\n");
 
 	printf("Codice: ");
-	if(getInteger(&id) < 0) return;
+	if(getInput(20, id, false) < 0) return;
 
 	// Prepare stored procedure call
 	if(!setup_prepared_stmt(&prepared_stmt, "call ritorna_trasferimento(?, ?)", conn)) {
@@ -675,9 +675,9 @@ static void return_transfer(MYSQL *conn) {
 	// Prepare parameters
 	memset(param, 0, sizeof(param));
 
-	param[0].buffer_type = MYSQL_TYPE_LONG;
-	param[0].buffer = &id;
-	param[0].buffer_length = sizeof(id);
+	param[0].buffer_type = MYSQL_TYPE_VAR_STRING;
+	param[0].buffer = id;
+	param[0].buffer_length = strlen(id);
 
     param[1].buffer_type = MYSQL_TYPE_LONG;
 	param[1].buffer = &lib;

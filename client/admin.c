@@ -654,7 +654,7 @@ static void accept_transfer(MYSQL *conn) {
 	MYSQL_STMT *prepared_stmt;
 	MYSQL_BIND param[2];
 
-    int idBook;
+    char idBook[20];
     int idLib;
 
     printf("\n");
@@ -662,7 +662,7 @@ static void accept_transfer(MYSQL *conn) {
 
 	// Get the required information
     printf("\nCodice Copia: ");
-	if(getInteger(&idBook) < 0){
+	if(getInput(20, idBook, false) < 0){
 		return;
 	}
 
@@ -679,9 +679,9 @@ static void accept_transfer(MYSQL *conn) {
 	// Prepare parameters
 	memset(param, 0, sizeof(param));
 
-	param[0].buffer_type = MYSQL_TYPE_LONG;
-	param[0].buffer = &idBook;
-	param[0].buffer_length = sizeof(idBook);
+	param[0].buffer_type = MYSQL_TYPE_VAR_STRING;
+	param[0].buffer = idBook;
+	param[0].buffer_length = strlen(idBook);
 
     param[1].buffer_type = MYSQL_TYPE_LONG;
 	param[1].buffer = &idLib;
@@ -705,7 +705,7 @@ static void reject_transfer(MYSQL *conn) {
 	MYSQL_STMT *prepared_stmt;
 	MYSQL_BIND param[2];
 
-    int idBook;
+    char idBook[20];
     int idLib;
 
     printf("\n");
@@ -713,7 +713,7 @@ static void reject_transfer(MYSQL *conn) {
 
 	// Get the required information
     printf("\nCodice Copia: ");
-	if(getInteger(&idBook) < 0) {
+	if(getInput(20, idBook, false) < 0) {
 		return;
 	}
 
@@ -730,9 +730,9 @@ static void reject_transfer(MYSQL *conn) {
 	// Prepare parameters
 	memset(param, 0, sizeof(param));
 
-	param[0].buffer_type = MYSQL_TYPE_LONG;
-	param[0].buffer = &idBook;
-	param[0].buffer_length = sizeof(idBook);
+	param[0].buffer_type = MYSQL_TYPE_VAR_STRING;
+	param[0].buffer = idBook;
+	param[0].buffer_length = strlen(idBook);
 
     param[1].buffer_type = MYSQL_TYPE_LONG;
 	param[1].buffer = &idLib;
