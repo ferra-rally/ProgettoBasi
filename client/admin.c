@@ -475,7 +475,6 @@ static void set_turn(MYSQL *conn) {
 	MYSQL_STMT *prepared_stmt;
 	MYSQL_BIND param[3];
 
-    //assegna_turnoWIP` (IN var_codice_turno INT, IN var_cf VARCHAR(16), IN var_biblioteca INT)
 
 	int idTurn;
 	char cf[16];
@@ -501,7 +500,7 @@ static void set_turn(MYSQL *conn) {
 
 	// Prepare stored procedure call
     //TODO Remove WIP
-	if(!setup_prepared_stmt(&prepared_stmt, "call assegna_turnoWIP(?, ?, ?)", conn)) {
+	if(!setup_prepared_stmt(&prepared_stmt, "call assegna_turno(?, ?, ?)", conn)) {
 		finish_with_stmt_error(conn, prepared_stmt, "Impossibile inizializzare lo statement.\n", false);
 	}
 
@@ -947,7 +946,7 @@ static void avble_lib(MYSQL *conn) {
 
 	// Prepare stored procedure call
 	//TODO REMOVE WIP
-	if(!setup_prepared_stmt(&prepared_stmt, "call bibliotecari_disponibiliWIP(?, ?, ?)", conn)) {
+	if(!setup_prepared_stmt(&prepared_stmt, "call bibliotecari_disponibili(?, ?, ?)", conn)) {
 		finish_with_stmt_error(conn, prepared_stmt, "Impossibile inizializzare lo statement.\n", false);
 	}
 
@@ -993,8 +992,6 @@ static void check_coverage(MYSQL *conn) {
 
     int id;
 
-	//`verifica_coperturaWIP` (IN var_biblioteca INT)
-
     printf("\nCopertura biblioteca\n");
 
 	printf("Codice biblioteca: ");
@@ -1003,7 +1000,7 @@ static void check_coverage(MYSQL *conn) {
 
 	// Prepare stored procedure call
 	//TODO REMOVE WIP
-	if(!setup_prepared_stmt(&prepared_stmt, "call verifica_coperturaWIP(?)", conn)) {
+	if(!setup_prepared_stmt(&prepared_stmt, "call verifica_copertura(?)", conn)) {
 		finish_with_stmt_error(conn, prepared_stmt, "Impossibile inizializzare lo statement.\n", false);
 	}
 
