@@ -1028,6 +1028,29 @@ static void check_coverage(MYSQL *conn) {
 	mysql_stmt_close(prepared_stmt);
 }
 
+static void see_dcopies(MYSQL *conn) {
+	MYSQL_STMT *prepared_stmt;
+	MYSQL_BIND param[3];
+
+
+	// Prepare stored procedure call
+	//TODO REMOVE WIP
+	if(!setup_prepared_stmt(&prepared_stmt, "call vedi_copie_dismesse()", conn)) {
+		finish_with_stmt_error(conn, prepared_stmt, "Impossibile inizializzare lo statement.\n", false);
+	}
+
+	// Run procedure
+	if (mysql_stmt_execute(prepared_stmt) != 0) {
+		print_stmt_error (prepared_stmt, "Errore nella ricerca della copie dismesse.");
+	}
+
+    char buff[100];
+    sprintf(buff, "Copie dismesse");
+    dump_result_set(conn, prepared_stmt, buff);
+
+	mysql_stmt_close(prepared_stmt);
+}
+
 void handler(int sig) {
 	printf("\nAnnullamento...\n");
 }
@@ -1076,6 +1099,7 @@ void admin(MYSQL *conn, char *username) {
             printf(ANSI_COLOR_GREEN "sick" ANSI_COLOR_RESET " - per mettere in malattia un bibliotecario\n");
             printf(ANSI_COLOR_GREEN "checkcoverage" ANSI_COLOR_RESET " - per verificare la copertura per una biblioteca\n");
             printf(ANSI_COLOR_GREEN "showtime" ANSI_COLOR_RESET " - mostra l'orario di una biblioteca\n");
+            printf(ANSI_COLOR_GREEN "seedcopies" ANSI_COLOR_RESET " - per mostrare le copie dismesse\n");
             printf(ANSI_COLOR_GREEN "quit" ANSI_COLOR_RESET " - per uscire dall'applicazione\n");
             printf(ANSI_COLOR_GREEN "clear" ANSI_COLOR_RESET " - per pulire lo schermo\n");
 			printf(ANSI_COLOR_RED "*********************" ANSI_COLOR_RESET "\n");
@@ -1109,7 +1133,9 @@ void admin(MYSQL *conn, char *username) {
             show_time(conn);
         }  else if(!strcmp(command, "avblelib")) {
             avble_lib(conn);
-        }  else if(!strcmp(command, "sick")) {
+        } else if(!strcmp(command, "seedcopies")) {
+            see_dcopies(conn);
+        } else if(!strcmp(command, "sick")) {
             sick_lib(conn);
         }  else if(!strcmp(command, "checkcoverage")) {
             check_coverage(conn);
