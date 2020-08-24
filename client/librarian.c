@@ -697,6 +697,43 @@ static void return_transfer(MYSQL *conn) {
 	mysql_stmt_close(prepared_stmt);
 }
 
+static void show_transfer(MYSQL *conn) {
+	MYSQL_STMT *prepared_stmt;
+	MYSQL_BIND param[1];
+
+    int id = lib;
+
+    printf("\n");
+
+	// Prepare stored procedure call
+	if(!setup_prepared_stmt(&prepared_stmt, "call copie_in_trasferimento(?)", conn)) {
+		finish_with_stmt_error(conn, prepared_stmt, "Impossibile inizializzare lo statement.\n", false);
+	}
+
+	// Prepare parameters
+	memset(param, 0, sizeof(param));
+
+	param[0].buffer_type = MYSQL_TYPE_LONG;
+	param[0].buffer = &id;
+	param[0].buffer_length = sizeof(id);
+
+
+	if (mysql_stmt_bind_param(prepared_stmt, param) != 0) {
+		finish_with_stmt_error(conn, prepared_stmt, "Errore nel binding dei parametri.\n", true);
+	}
+
+	// Run procedure
+	if (mysql_stmt_execute(prepared_stmt) != 0) {
+		print_stmt_error (prepared_stmt, "Errore nella richiesta delle copie in trasferimento.");
+	}
+
+    char buff[50];
+    sprintf(buff, "Copie in trasferimento della biblioteca %d", id);
+    dump_result_set(conn, prepared_stmt, buff);
+
+	mysql_stmt_close(prepared_stmt);
+}
+
 static void show_time(MYSQL *conn) {
 	MYSQL_STMT *prepared_stmt;
 	MYSQL_BIND param[1];
@@ -789,6 +826,7 @@ void librarian(MYSQL *conn, int library, char *username) {
             printf(ANSI_COLOR_GREEN "showbooks" ANSI_COLOR_RESET " - mostra libri nel sistema a partire dal Titolo\n");
             printf(ANSI_COLOR_GREEN "request" ANSI_COLOR_RESET " - richiedi trasferimento\n");
             printf(ANSI_COLOR_GREEN "rtransfer" ANSI_COLOR_RESET " - ritorna trasferimento\n");
+            printf(ANSI_COLOR_GREEN "showtransfer" ANSI_COLOR_RESET " - mostra copie in trasferimento\n");
             printf(ANSI_COLOR_GREEN "move" ANSI_COLOR_RESET " - sposta copie in ripiani e scaffali\n");
 			printf(ANSI_COLOR_GREEN "showtime" ANSI_COLOR_RESET " - mostra l'orario di una biblioteca\n");
             printf(ANSI_COLOR_GREEN "quit" ANSI_COLOR_RESET " - per uscire dall'applicazione\n");
@@ -818,6 +856,8 @@ void librarian(MYSQL *conn, int library, char *username) {
             request_transfer(conn);
         } else if(!strcmp(command, "rtransfer")) {
             return_transfer(conn);
+        } else if(!strcmp(command, "showtransfer")) {
+            show_transfer(conn);
         } else if(!strcmp(command, "clear")) {
             printf("\033[2J\033[H");
         } else if(!strcmp(command, "showbooks")) {
