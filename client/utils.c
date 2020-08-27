@@ -54,7 +54,7 @@ void finish_with_stmt_error(MYSQL *conn, MYSQL_STMT *stmt, char *message, bool c
 
 bool setup_prepared_stmt(MYSQL_STMT **stmt, char *statement, MYSQL *conn)
 {
-	my_bool update_length = true;
+	bool update_length = true;
 
 	*stmt = mysql_stmt_init(conn);
 	if (*stmt == NULL)

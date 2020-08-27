@@ -341,6 +341,7 @@ static void add_time(MYSQL *conn) {
 	}
     getchar();
 
+
 	// Prepare stored procedure call
 	if(!setup_prepared_stmt(&prepared_stmt, "call aggiungi_orario(?, ?, ?, ?)", conn)) {
 		finish_with_stmt_error(conn, prepared_stmt, "Impossibile inizializzare lo statement.\n", false);
